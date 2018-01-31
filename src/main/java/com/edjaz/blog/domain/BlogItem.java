@@ -417,7 +417,6 @@ public class BlogItem implements Serializable {
             ", image='" + getImage() + "'" +
             ", imageContentType='" + getImageContentType() + "'" +
             ", visiblity='" + getVisiblity() + "'" +
-            ", password='" + getPassword() + "'" +
             "}";
     }
 }

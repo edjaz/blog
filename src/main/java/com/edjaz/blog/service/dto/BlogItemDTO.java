@@ -208,7 +208,6 @@ public class BlogItemDTO implements Serializable {
             ", updated='" + getUpdated() + "'" +
             ", image='" + getImage() + "'" +
             ", visiblity='" + getVisiblity() + "'" +
-            ", password='" + getPassword() + "'" +
             "}";
     }
 }

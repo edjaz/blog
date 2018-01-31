@@ -4,7 +4,6 @@ import com.codahale.metrics.annotation.Timed;
 import com.edjaz.blog.domain.User;
 import com.edjaz.blog.repository.UserRepository;
 import com.edjaz.blog.security.AuthoritiesConstants;
-import com.edjaz.blog.security.jwt.TokenProvider;
 import com.edjaz.blog.service.UserService;
 import com.edjaz.blog.service.dto.UserDTO;
 import com.edjaz.blog.web.rest.errors.EmailAlreadyUsedException;
@@ -16,8 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 

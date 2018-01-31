@@ -2,10 +2,10 @@ package com.edjaz.blog.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
 import com.edjaz.blog.service.BlogItemService;
+import com.edjaz.blog.service.dto.BlogItemDTO;
 import com.edjaz.blog.web.rest.errors.BadRequestAlertException;
 import com.edjaz.blog.web.rest.util.HeaderUtil;
 import com.edjaz.blog.web.rest.util.PaginationUtil;
-import com.edjaz.blog.service.dto.BlogItemDTO;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
-
-import static org.elasticsearch.index.query.QueryBuilders.*;
 
 /**
  * REST controller for managing BlogItem.
