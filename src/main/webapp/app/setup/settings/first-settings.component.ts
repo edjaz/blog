@@ -1,8 +1,9 @@
 import {Component, ElementRef, OnInit} from '@angular/core';
-import {JhiDataUtils, JhiLanguageService} from 'ng-jhipster';
+import {JhiDataUtils, JhiEventManager, JhiLanguageService} from 'ng-jhipster';
 
-import {JhiLanguageHelper, Principal, SetupService, User, UserService} from '../../shared';
-import {Blog} from '../../entities/blog';
+import {JhiLanguageHelper, LoginService, Principal, SetupService, User, UserService} from '../../shared';
+import {Blog, BlogService} from '../../entities/blog';
+import {Router} from '@angular/router';
 
 @Component({
     selector: 'jhi-setup',
@@ -21,14 +22,17 @@ export class FirstSettingsComponent implements OnInit {
                 private languageHelper: JhiLanguageHelper,
                 private setupService: SetupService,
                 private dataUtils: JhiDataUtils,
-                private elementRef: ElementRef) {
+                private elementRef: ElementRef,
+                private blogService: BlogService,
+                private loginService: LoginService,
+                private eventManager: JhiEventManager,
+                private router: Router) {
     }
 
     ngOnInit() {
         this.blog = new Blog();
-
         this.setupService.findIdAdmin().subscribe((id) => {
-            this.user = new User(id, '', '', '', '', true, '', ['ROLE_ADMIN'], '', new Date(), '', new Date(), '');
+            this.user = {id: id};
         });
         this.languageHelper.getAll().then((languages) => {
             this.languages = languages;
@@ -39,9 +43,19 @@ export class FirstSettingsComponent implements OnInit {
         this.setupService.updateAdmin(this.user).subscribe(() => {
             this.error = null;
             this.success = 'OK';
-            this.principal.identity(true).then((user) => {
-                this.user = user;
-                // todo : création du blog, maintenant qu'on est loggué en admin
+
+            this.loginService.login({
+                username: this.user.email,
+                password: this.user.password,
+                rememberMe: false
+            }).then(() => {
+                this.blogService.create(this.blog).subscribe(() => {
+                    this.router.navigate(['']);
+                    this.eventManager.broadcast({
+                        name: 'authenticationSuccess',
+                        content: 'Sending Authentication Success'
+                    });
+                });
             });
 
             this.languageService.getCurrent().then((current) => {
@@ -55,7 +69,6 @@ export class FirstSettingsComponent implements OnInit {
         });
 
     }
-
 
     byteSize(field) {
         return this.dataUtils.byteSize(field);

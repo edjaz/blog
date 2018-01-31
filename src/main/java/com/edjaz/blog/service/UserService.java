@@ -1,17 +1,15 @@
 package com.edjaz.blog.service;
 
-import com.edjaz.blog.config.CacheConfiguration;
+import com.edjaz.blog.config.Constants;
 import com.edjaz.blog.domain.Authority;
 import com.edjaz.blog.domain.User;
 import com.edjaz.blog.repository.AuthorityRepository;
-import com.edjaz.blog.config.Constants;
 import com.edjaz.blog.repository.UserRepository;
 import com.edjaz.blog.repository.search.UserSearchRepository;
 import com.edjaz.blog.security.AuthoritiesConstants;
 import com.edjaz.blog.security.SecurityUtils;
-import com.edjaz.blog.service.util.RandomUtil;
 import com.edjaz.blog.service.dto.UserDTO;
-
+import com.edjaz.blog.service.util.RandomUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -24,7 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -73,18 +74,18 @@ public class UserService {
     }
 
     public Optional<User> completePasswordReset(String newPassword, String key) {
-       log.debug("Reset user password for reset key {}", key);
+        log.debug("Reset user password for reset key {}", key);
 
-       return userRepository.findOneByResetKey(key)
-           .filter(user -> user.getResetDate().isAfter(Instant.now().minusSeconds(86400)))
-           .map(user -> {
+        return userRepository.findOneByResetKey(key)
+            .filter(user -> user.getResetDate().isAfter(Instant.now().minusSeconds(86400)))
+            .map(user -> {
                 user.setPassword(passwordEncoder.encode(newPassword));
                 user.setResetKey(null);
                 user.setResetDate(null);
                 cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE).evict(user.getLogin());
                 cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE).evict(user.getEmail());
                 return user;
-           });
+            });
     }
 
     public Optional<User> requestPasswordReset(String mail) {
@@ -162,10 +163,10 @@ public class UserService {
      * Update basic information (first name, last name, email, language) for the current user.
      *
      * @param firstName first name of user
-     * @param lastName last name of user
-     * @param email email id of user
-     * @param langKey language key
-     * @param imageUrl image URL of user
+     * @param lastName  last name of user
+     * @param email     email id of user
+     * @param langKey   language key
+     * @param imageUrl  image URL of user
      */
     public void updateUser(String firstName, String lastName, String email, String langKey, String imageUrl) {
         SecurityUtils.getCurrentUserLogin()
@@ -228,14 +229,27 @@ public class UserService {
     public void changePassword(String password) {
         SecurityUtils.getCurrentUserLogin()
             .flatMap(userRepository::findOneByLogin)
-            .ifPresent(user -> {
-                String encryptedPassword = passwordEncoder.encode(password);
-                user.setPassword(encryptedPassword);
-                cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE).evict(user.getLogin());
-                cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE).evict(user.getEmail());
-                log.debug("Changed password for User: {}", user);
-            });
+            .ifPresent(user -> encodePassword(password, user));
     }
+
+
+    public void changePasswordForUser(String login, String password) {
+        userRepository.findOneByLogin(login)
+            .ifPresent(user -> encodePassword(password, user));
+    }
+
+    private void encodePassword(String password, User user) {
+        String encryptedPassword = passwordEncoder.encode(password);
+        user.setPassword(encryptedPassword);
+        emptyCacheUser(user);
+        log.debug("Changed password for User: {}", user);
+    }
+
+    private void emptyCacheUser(User user){
+        cacheManager.getCache(UserRepository.USERS_BY_LOGIN_CACHE).evict(user.getLogin());
+        cacheManager.getCache(UserRepository.USERS_BY_EMAIL_CACHE).evict(user.getEmail());
+    }
+
 
     @Transactional(readOnly = true)
     public Page<UserDTO> getAllManagedUsers(Pageable pageable) {

@@ -43,7 +43,7 @@ public class DslSecurity extends SecurityExpressionRoot implements MethodSecurit
     }
 
     public boolean isFirstSetup() {
-        return blogRepository.count() == 0 || hasAuthority("ROLE_ADMIN");
+        return blogRepository.count() == 0;
     }
 
 }
